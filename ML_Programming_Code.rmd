@@ -1,0 +1,51 @@
+---
+title: "Learning Assignment Code"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+Random Tree Code
+
+```{r}
+library(caret); library(rattle); library(ggplot2)
+library(doParallel)
+
+rCluster <- makePSOCKcluster(6)  # Use 6 cores
+registerDoParallel(rCluster)
+
+trainingData = read.csv('pml-training.csv')
+trainingData <- trainingData[, -grep("*roll*|*yaw*|*p.*h*|*problem_id*|*accel*", colnames(trainingData))]
+
+testingData = read.csv('pml-testing.csv')
+testingData <- testingData[, -grep("*roll*|*yaw*|*p.*h*|*problem_id*|*accel*", colnames(testingData))]
+
+
+inTrain <- createDataPartition(y=trainingData$classe, p=0.7, list=FALSE)
+training <- trainingData[inTrain,]
+testing <- trainingData[-inTrain,]
+dim(training); dim(testing)
+
+modFit <- train(classe ~ ., method="rf", data=training,prox=TRUE)
+modFit
+
+print (modFit$finalModel)
+
+fancyRpartPlot(modFit$finalModel)
+
+predict(modFit, newdata=testing)
+
+testing$predRight <- pred==testing$classe
+table(pred, testing$classe)
+
+predict(modFit, newdata=testingData)
+
+```
+
+You can also embed plots, for example:
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
